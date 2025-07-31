@@ -11,3 +11,21 @@ version = "1.9.7"
 url = "https://soldeer-revisions.s3.amazonaws.com/forge-std/1_9_7_28-04-2025_15:55:08_forge-std-1.9.zip"
 checksum = "8d9e0a885fa8ee6429a4d344aeb6799119f6a94c7c4fe6f188df79b0dce294ba"
 integrity = "9e60fdba82bc374df80db7f2951faff6467b9091873004a3d314cf0c084b3c7d"
+
+[[dependencies]]
+name = "limit-order-protocol"
+version = "4.3.2"
+git = "https://github.com/1inch/limit-order-protocol.git"
+rev = "67c56aee3b6a9f4982bf487084bd8da1f6638da0"
+
+[[dependencies]]
+name = "limit-order-settlement"
+version = "2.1.0"
+git = "https://github.com/1inch/limit-order-settlement.git"
+rev = "2ffa6481ae9d8f7de3fa245c98a9bc697ed3a7bd"
+
+[[dependencies]]
+name = "solidity-utils"
+version = "6.6.0"
+git = "https://github.com/1inch/solidity-utils.git"
+rev = "948af77af88f103876f8895c0806a08167f97543"
