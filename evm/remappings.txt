@@ -1,0 +1,5 @@
+@openzeppelin-contracts/=dependencies/@openzeppelin-contracts-5.3.0/
+forge-std/=dependencies/forge-std-1.9.7/
+limit-order-protocol/=dependencies/limit-order-protocol-4.3.2/
+limit-order-settlement/=dependencies/limit-order-settlement-2.1.0/
+solidity-utils/=dependencies/solidity-utils-6.6.0/
