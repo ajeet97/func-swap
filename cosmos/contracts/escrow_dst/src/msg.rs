@@ -14,19 +14,11 @@ pub enum ExecuteMsg {
         secret: String,
         immutables: Immutables,
     },
-    WithdrawTo {
-        secret: String,
-        target: Addr,
-        immutables: Immutables,
-    },
     PublicWithdraw {
         secret: String,
         immutables: Immutables,
     },
     Cancel {
-        immutables: Immutables,
-    },
-    PublicCancel {
         immutables: Immutables,
     },
 }

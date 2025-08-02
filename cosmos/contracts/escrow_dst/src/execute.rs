@@ -19,17 +19,16 @@ pub fn withdraw(
     env: Env,
     info: MessageInfo,
     secret: String,
-    target: Addr,
     immutables: Immutables,
 ) -> Result<Response, ContractError> {
     only_taker(&info, &immutables)?;
-    only_after(&env, immutables.timelocks.get(TimelockStage::SrcWithdrawal))?;
+    only_after(&env, immutables.timelocks.get(TimelockStage::DstWithdrawal))?;
     only_before(
         &env,
-        immutables.timelocks.get(TimelockStage::SrcCancellation),
+        immutables.timelocks.get(TimelockStage::DstCancellation),
     )?;
 
-    withdraw_to(deps, &secret, &info.sender, &target, &immutables)
+    _withdraw(deps, &secret, &info.sender, &immutables)
 }
 
 pub fn public_withdraw(
@@ -42,14 +41,14 @@ pub fn public_withdraw(
     // TODO: restrict only access token holders
     only_after(
         &env,
-        immutables.timelocks.get(TimelockStage::SrcPublicWithdrawal),
+        immutables.timelocks.get(TimelockStage::DstPublicWithdrawal),
     )?;
     only_before(
         &env,
-        immutables.timelocks.get(TimelockStage::SrcCancellation),
+        immutables.timelocks.get(TimelockStage::DstCancellation),
     )?;
 
-    withdraw_to(deps, &secret, &info.sender, &immutables.taker, &immutables)
+    _withdraw(deps, &secret, &info.sender, &immutables)
 }
 
 pub fn cancel(
@@ -61,34 +60,16 @@ pub fn cancel(
     only_taker(&info, &immutables)?;
     only_after(
         &env,
-        immutables.timelocks.get(TimelockStage::SrcCancellation),
+        immutables.timelocks.get(TimelockStage::DstCancellation),
     )?;
 
     _cancel(deps, &info.sender, &immutables)
 }
 
-pub fn public_cancel(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    immutables: Immutables,
-) -> Result<Response, ContractError> {
-    // TODO: restrict only access token holders
-    only_after(
-        &env,
-        immutables
-            .timelocks
-            .get(TimelockStage::SrcPublicCancellation),
-    )?;
-
-    _cancel(deps, &info.sender, &immutables)
-}
-
-fn withdraw_to(
+fn _withdraw(
     deps: DepsMut,
     secret: &String,
     sender: &Addr,
-    target: &Addr,
     immutables: &Immutables,
 ) -> Result<Response, ContractError> {
     only_valid_immutables(deps, immutables)?;
@@ -96,7 +77,7 @@ fn withdraw_to(
 
     let mut msgs: Vec<CosmosMsg> = vec![];
 
-    transfer(target, &immutables.coin, &mut msgs);
+    transfer(&immutables.maker, &immutables.coin, &mut msgs);
     transfer(
         sender,
         &native_balance(immutables.safety_deposit, NATIVE_DENOM),

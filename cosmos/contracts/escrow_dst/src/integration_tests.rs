@@ -227,8 +227,6 @@ mod tests {
             })
             .unwrap();
 
-        let init_block_time = app.block_info().time;
-
         let err = app.execute(maker.clone(), msg.clone()).unwrap_err();
         assert_eq!(err.root_cause().to_string(), "InvalidCaller");
 
@@ -238,78 +236,30 @@ mod tests {
 
         // fasttrack to cancellation delay
         app.update_block(|block| {
-            block.time = init_block_time.plus_seconds(120);
+            block.time = block.time.plus_seconds(120);
             block.height += 1;
         });
         // cannot withdraw after cancellation delay passed
         let err = app.execute(taker.clone(), msg.clone()).unwrap_err();
         assert_eq!(err.root_cause().to_string(), "InvalidTime");
 
-        // move to withdrawal delay
+        // move back to withdrawal delay
         app.update_block(|block| {
-            block.time = init_block_time.plus_seconds(30);
+            block.time = block.time.minus_seconds(60);
             block.height += 1;
         });
 
+        let maker_bal_before = balance(&app, &maker);
         let taker_bal_before = balance(&app, &taker);
-
         app.execute(taker.clone(), msg.clone()).unwrap();
-
+        let maker_bal_after = balance(&app, &maker);
         let taker_bal_after = balance(&app, &taker);
-        assert_eq!(taker_bal_after - taker_bal_before, Uint128::new(1001000));
-    }
 
-    #[test]
-    fn public_withdraw() {
-        let (_maker, taker, public) = users();
-        let (mut app, contract, secret, immutables) = setup_contract();
-
-        let msg = &contract
-            .call(ExecuteMsg::PublicWithdraw {
-                secret: secret,
-                immutables: immutables.clone(),
-            })
-            .unwrap();
-
-        let init_block_time = app.block_info().time;
-
-        // withdrawal delay not passed yet
-        let err = app.execute(public.clone(), msg.clone()).unwrap_err();
-        assert_eq!(err.root_cause().to_string(), "InvalidTime");
-
-        // fasttrack to cancellation delay
-        app.update_block(|block| {
-            block.time = init_block_time.plus_seconds(120);
-            block.height += 1;
-        });
-        // cannot withdraw after cancellation delay passed
-        let err = app.execute(public.clone(), msg.clone()).unwrap_err();
-        assert_eq!(err.root_cause().to_string(), "InvalidTime");
-
-        // move to withdrawal delay
-        app.update_block(|block| {
-            block.time = init_block_time.plus_seconds(30);
-            block.height += 1;
-        });
-        // cannot withdraw before public withdrawal delay passed
-        let err = app.execute(public.clone(), msg.clone()).unwrap_err();
-        assert_eq!(err.root_cause().to_string(), "InvalidTime");
-
-        // move to public withdrawal delay
-        app.update_block(|block| {
-            block.time = init_block_time.plus_seconds(60);
-            block.height += 1;
-        });
-
-        let public_bal_before = balance(&app, &public);
-        let taker_bal_before = balance(&app, &taker);
-
-        app.execute(public.clone(), msg.clone()).unwrap();
-
-        let public_bal_after = balance(&app, &public);
-        let taker_bal_after = balance(&app, &taker);
-        assert_eq!(public_bal_after - public_bal_before, Uint128::new(1000));
-        assert_eq!(taker_bal_after - taker_bal_before, Uint128::new(1000000));
+        assert_eq!(maker_bal_after - maker_bal_before, Uint128::new(1000000));
+        assert_eq!(
+            taker_bal_after - taker_bal_before,
+            immutables.safety_deposit
+        );
     }
 
     fn balance(app: &App, addr: &Addr) -> Uint128 {

@@ -98,22 +98,13 @@ pub fn execute(
     // TODO: implement rescue_funds
     match msg {
         ExecuteMsg::Withdraw { secret, immutables } => {
-            let target = info.sender.clone();
-            execute::withdraw(deps, env, info, secret, target, immutables)
+            execute::withdraw(deps, env, info, secret, immutables)
         }
-        ExecuteMsg::WithdrawTo {
-            secret,
-            target,
-            immutables,
-        } => execute::withdraw(deps, env, info, secret, target, immutables),
 
         ExecuteMsg::PublicWithdraw { secret, immutables } => {
             execute::public_withdraw(deps, env, info, secret, immutables)
         }
         ExecuteMsg::Cancel { immutables } => execute::cancel(deps, env, info, immutables),
-        ExecuteMsg::PublicCancel { immutables } => {
-            execute::public_cancel(deps, env, info, immutables)
-        }
     }
 }
 

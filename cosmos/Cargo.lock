@@ -576,6 +576,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "escrow_dst"
+version = "0.1.0"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-multi-test",
+ "cw-storage-plus",
+ "cw2",
+ "cw20",
+ "schemars",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 1.0.69",
+]
+
+[[package]]
 name = "escrow_src"
 version = "0.1.0"
 dependencies = [
