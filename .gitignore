@@ -1,3 +1,6 @@
+# macOS
+.DS_Store
+
 # Compiler files
 cache/
 out/
@@ -16,3 +19,16 @@ docs/
 
 # Soldeer
 evm/dependencies
+
+# Text file backups
+**/*.rs.bk
+
+# Build results
+target/
+
+# Auto-gen
+.cargo-ok
+
+artifacts
+
+node_modules
