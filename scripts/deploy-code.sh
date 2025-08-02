@@ -3,7 +3,7 @@ CHAIN_ID="test-chain-1"
 PROJECT_DIR="$HOME/ETHGlobal/func-swap"
 
 # Upload the contract
-RESP=$(wasmd tx wasm store "$PROJECT_DIR/cosmos2/artifacts/$CONTRACT" \
+RESP=$(wasmd tx wasm store "$PROJECT_DIR/cosmos/artifacts/$CONTRACT" \
   --from alice \
   --gas 2000000 \
   -y \
