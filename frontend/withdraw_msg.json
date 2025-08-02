@@ -1,0 +1,24 @@
+{
+  "withdraw": {
+    "secret": "0xdb44e0898fad0fe3643304a065d2b8b74502546d0876f1908cc512e2d76a1e28",
+    "immutables": {
+      "order_hash": "order_1",
+      "hashlock": "0x4880eef8594c359132719b76f8c1041a1484e92c3c087ef6575dc47b9b477da5",
+      "maker": "wasm1uft7ud295pc0u496j7xh9535r4ffq2mxllnn4j",
+      "taker": "wasm1dwe5armpq5vsucyulcynfzgx5qgf7gcveqhxqz",
+      "coin": {
+        "native": [
+          {
+            "denom": "stake",
+            "amount": "1000000"
+          }
+        ]
+      },
+      "safety_deposit": "1000",
+      "timelocks": {
+        "dst": "138972037433247551493660541946142130176",
+        "src": "0"
+      }
+    }
+  }
+}
