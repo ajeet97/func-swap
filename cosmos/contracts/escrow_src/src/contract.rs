@@ -10,6 +10,7 @@ use crate::{
     error::ContractError,
     execute,
     msg::{ExecuteMsg, InstantiateMsg, QueryMsg},
+    query,
     state::{State, STATE},
 };
 
@@ -71,6 +72,8 @@ pub fn instantiate(
                 return Err(ContractError::InsufficientFunds {});
             }
         }
+
+        // TODO
         cw20::Balance::Cw20(_coin) => {} // do nothing for now
     }
 
@@ -100,8 +103,8 @@ pub fn execute(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(_deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::GetImmutablesHash {} => to_json_binary(""),
+        QueryMsg::GetState {} => to_json_binary(&query::get_state(deps)?),
     }
 }

@@ -1,5 +1,5 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::{Addr, Uint128};
+use cosmwasm_std::{Addr, CustomQuery, Uint128};
 use sha2::{Digest, Sha256};
 
 #[cw_serde]
@@ -19,16 +19,18 @@ pub enum ExecuteMsg {
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
-    // GetImmutablesHash returns the current count as a json-encoded number
-    #[returns(GetImmutablesHashResponse)]
-    GetImmutablesHash {},
+    // GetState returns the current state as a json-encoded number
+    #[returns(GetStateResponse)]
+    GetState {},
 }
 
-// We define a custom struct for each query response
 #[cw_serde]
-pub struct GetImmutablesHashResponse {
-    pub hash: String,
+pub struct GetStateResponse {
+    pub rescue_delay: u64,
+    pub immutables_hash: String,
 }
+
+impl CustomQuery for QueryMsg {}
 
 /////////////////////////////////////
 
@@ -73,6 +75,27 @@ pub enum TimelockStage {
 }
 
 impl Timelocks {
+    pub fn new(
+        deployed_at: u32,
+        src_withdrawal: u32,
+        src_cancellation: u32,
+        dst_withdrawal: u32,
+        dst_cancellation: u32,
+    ) -> Timelocks {
+        Timelocks {
+            dst: ((deployed_at as u128) << 96
+                | (dst_cancellation as u128) << 64
+                | (2 * dst_withdrawal as u128) << 32
+                | (dst_withdrawal as u128))
+                .into(),
+            src: ((2 * src_cancellation as u128) << 96
+                | (src_cancellation as u128) << 64
+                | (2 * src_withdrawal as u128) << 32
+                | (src_withdrawal as u128))
+                .into(),
+        }
+    }
+
     pub fn get(&self, stage: TimelockStage) -> u128 {
         let mut shift: u128 = (stage as u128) * 32;
         let mut data: u128 = self.src.u128();
@@ -124,19 +147,15 @@ mod tests {
 
     #[test]
     fn timelocks_test() {
-        let t: Timelocks = Timelocks {
-            dst: Uint128::new(0xefefefefcdcdcdcdabababab90909090),
-            src: Uint128::new(0x78787878565656563434343412121212),
-        };
-
+        let t = Timelocks::new(0x01010101, 0x12121212, 0x34343434, 0x56565656, 0x78787878);
         let d: u128 = t.deployed_at();
-        assert_eq!(d, 0xefefefef);
+        assert_eq!(d, 0x01010101);
         assert_eq!(d + 0x12121212, t.get(TimelockStage::SrcWithdrawal));
-        assert_eq!(d + 0x34343434, t.get(TimelockStage::SrcPublicWithdrawal));
-        assert_eq!(d + 0x56565656, t.get(TimelockStage::SrcCancellation));
-        assert_eq!(d + 0x78787878, t.get(TimelockStage::SrcPublicCancellation));
-        assert_eq!(d + 0x90909090, t.get(TimelockStage::DstWithdrawal));
-        assert_eq!(d + 0xabababab, t.get(TimelockStage::DstPublicWithdrawal));
-        assert_eq!(d + 0xcdcdcdcd, t.get(TimelockStage::DstCancellation));
+        assert_eq!(d + 0x24242424, t.get(TimelockStage::SrcPublicWithdrawal));
+        assert_eq!(d + 0x34343434, t.get(TimelockStage::SrcCancellation));
+        assert_eq!(d + 0x68686868, t.get(TimelockStage::SrcPublicCancellation));
+        assert_eq!(d + 0x56565656, t.get(TimelockStage::DstWithdrawal));
+        assert_eq!(d + 0xacacacac, t.get(TimelockStage::DstPublicWithdrawal));
+        assert_eq!(d + 0x78787878, t.get(TimelockStage::DstCancellation));
     }
 }
