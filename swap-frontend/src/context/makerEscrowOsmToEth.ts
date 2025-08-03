@@ -11,55 +11,12 @@ import { GasPrice } from "@cosmjs/stargate";
 // import { order } from './orders/order-2'
 import { ethers } from "ethers";
 import { loadOrder } from "./Order";
-
-
-
-export function createTimelock(
-    deployedAt: bigint,
-    srcWithdrawal: bigint,
-    srcCancellation: bigint,
-    dstWithdrawal: bigint,
-    dstCancellation: bigint,
-) {
-    return {
-        dst: (deployedAt << 96n
-            | dstCancellation << 64n
-            | (2n * dstWithdrawal) << 32n
-            | dstWithdrawal).toString(),
-        src: ((2n * srcCancellation) << 96n
-            | srcCancellation << 64n
-            | (2n * srcWithdrawal) << 32n
-            | srcWithdrawal).toString(),
-    }
-}
-
-export function createEvmTimelock(
-    deployedAt: bigint,
-    srcWithdrawal: bigint,
-    srcCancellation: bigint,
-    dstWithdrawal: bigint,
-    dstCancellation: bigint,
-) {
-    return (
-        deployedAt << 224n
-        | dstCancellation << 192n
-        | (2n * dstWithdrawal) << 160n
-        | dstWithdrawal << 128n
-        | (2n * srcCancellation) << 96n
-        | srcCancellation << 64n
-        | (2n * srcWithdrawal) << 32n
-        | srcWithdrawal
-    ).toString();
-}
-
-
-
-
+import { createTimelock } from "./timelocks";
 
 export async function makerCosmosEscrow(client: any, accountAddress: string) {
     // todo: change address to cosmo
     console.log("account address: ", accountAddress)
-    const RESOLVER_COSMOS_ADDR="osmo15xgu3ueqlpakse8ma2u4dvq3y7n6zte80khuu9"
+    const RESOLVER_COSMOS_ADDR = "osmo15xgu3ueqlpakse8ma2u4dvq3y7n6zte80khuu9"
     const order = loadOrder()
     if (order.swap.from.network != 'cosmos') throw new Error('Invalid network for maker escrow')
 
