@@ -1,9 +1,10 @@
-import "dotenv/config"
-
+// import "dotenv/config"
 import ConnectWalletButton from "@/components/ConnectWalletButton";
 import SwapInterface from "@/components/SwapInterface";
 import Card from "@/components/ui/Card";
 import Image from "next/image";
+
+console.log("rpc url", process.env.NEXT_PUBLIC_EVM_RPC);
 
 export default function Home() {
   return (

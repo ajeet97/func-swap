@@ -5,15 +5,16 @@ import { loadOrder } from "./Order";
 import EscrowFactoryABI from "../abis/EscrowFactory.json";
 import { createEvmTimelock } from './timelocks';
 
-const taker = process.env.RESOLVER_EVM_ADDR!;
-const pk = process.env.RESOLVER_EVM_PK!;
+const taker = process.env.NEXT_PUBLIC_RESOLVER_EVM_ADDR!;
+const pk = process.env.NEXT_PUBLIC_RESOLVER_EVM_PK!;
 const factoryAddr = '0x9CA8EEFbe7CB1827be7781eD713b74955f1be0be'
 
 export async function takerCosmosFill() {
+    console.log("taker evm rpc: ", process.env.NEXT_PUBLIC_EVM_RPC)
     const order = loadOrder();
     if (order.swap.to.network != 'ethereum') throw new Error('Invalid network for maker escrow')
 
-    const provider = new ethers.JsonRpcProvider(process.env.EVM_RPC);
+    const provider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_EVM_RPC);
     const signer = new ethers.Wallet(pk, provider);
     const factory = new ethers.Contract(factoryAddr, EscrowFactoryABI, signer);
 

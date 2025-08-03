@@ -8,7 +8,7 @@ import { createEvmTimelock } from "./timelock";
 
 const pk = process.env.PRIVATE_KEY;
 const factoryAddr = process.env.ESCROW_FACTORY;
-const taker = process.env.RESOLVER_EVM_ADDR;
+const taker = process.env.NEXT_PUBLIC_RESOLVER_EVM_ADDR;
 
 const orderID = 1;
 
@@ -16,7 +16,7 @@ async function makerEscrow() {
     const order = loadOrder(orderID);
     if (order.swap.from.network != 'ethereum') throw new Error('Invalid network for maker escrow')
 
-    const provider = new ethers.JsonRpcProvider(process.env.EVM_RPC);
+    const provider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_EVM_RPC);
     const signer = new ethers.Wallet(pk, provider);
     const factory = new ethers.Contract(factoryAddr, EscrowFactoryABI, signer);
 

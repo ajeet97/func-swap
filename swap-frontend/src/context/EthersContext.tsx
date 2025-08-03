@@ -1,10 +1,14 @@
 // src/contexts/EthersContext.tsx
 "use client";
 
+import "dotenv/config";
+// import './envConfig.ts'
+// import '../../envConfig';
 import React, { createContext, useState, useEffect, useContext } from "react";
 import { ethers } from "ethers";
 import { createOrder } from "./Order";
 import { makerCosmosEscrow } from "./makerEscrowOsmToEth";
+import { takerCosmosFill } from "./takerFillOsmToEth";
 
 type EthersContextType = {
   account: string | null;
@@ -243,11 +247,19 @@ All 4 steps completed successfully!
             )
      console.log(accounts[0])
       await makerCosmosEscrow(client, accounts[0].address)
+      console.log("maker done ")
+      await new Promise(resolve => setTimeout(resolve, 10000));
+      console.log("taker starting ")
+
+      await takerCosmosFill()
+      console.log("taker done ")
+
     }
    
   }
 
   const connectWallet = async () => {
+    console.log("rpc url", process.env.NEXT_PUBLIC_EVM_RPC);
     if (!window.ethereum) {
       alert("MetaMask not detected");
       return;
