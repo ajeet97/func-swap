@@ -1,0 +1,27 @@
+{
+  "orderID": 1,
+  "timestamp": 1754220871057,
+  "swap": {
+    "from": {
+      "address": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "token": "0x0000000000000000000000000000000000000000",
+      "amount": "1000000000000000",
+      "network": "ethereum",
+      "chainID": 11155111
+    },
+    "to": {
+      "address": "wasm1r66lx8v6tleumkvm9vup5m32hf7mdu5fd2awha",
+      "token": "stake",
+      "amount": "1000",
+      "network": "cosmos",
+      "chainID": "test-chain-1"
+    }
+  },
+  "secret": "3f3830870d536c282d884057281079d3b46e388caa0c2719e9e2595670cfa899",
+  "hashlock": "d277df0455df59d5c7f5abdb0ce82d78c06a7c81ab4a005c84faaf8b898629e2",
+  "timelocks": {
+    "withdrawalPeriod": 30,
+    "cancellationPeriod": 120
+  },
+  "status": 0
+}
