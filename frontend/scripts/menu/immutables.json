@@ -1,0 +1,19 @@
+{
+  "order_hash": "order_00001",
+  "hashlock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "maker": "wasm1wrauxtd7ly39u8eersycytds9v2nv73a8un26r",
+  "taker": "wasm1hpzsgkzxev9dehkh7nthdqptqud2p5ge4p4wgh",
+  "coin": {
+    "native": [
+      {
+        "denom": "stake",
+        "amount": "100000"
+      }
+    ]
+  },
+  "safety_deposit": "500",
+  "timelocks": {
+    "dst": "7922816251427171629117601113702430",
+    "src": "3169126500939508385301848391690"
+  }
+}

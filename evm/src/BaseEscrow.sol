@@ -2,14 +2,14 @@
 
 pragma solidity 0.8.23;
 
-import { IERC20 } from "@openzeppelin-contracts/token/ERC20/IERC20.sol";
-import { AddressLib, Address } from "solidity-utils/contracts/libraries/AddressLib.sol";
-import { SafeERC20 } from "solidity-utils/contracts/libraries/SafeERC20.sol";
+import {IERC20} from "@openzeppelin-contracts/token/ERC20/IERC20.sol";
+import {AddressLib, Address} from "solidity-utils/contracts/libraries/AddressLib.sol";
+import {SafeERC20} from "solidity-utils/contracts/libraries/SafeERC20.sol";
 
-import { ImmutablesLib } from "./libraries/ImmutablesLib.sol";
-import { Timelocks, TimelocksLib } from "./libraries/TimelocksLib.sol";
+import {ImmutablesLib} from "./libraries/ImmutablesLib.sol";
+import {Timelocks, TimelocksLib} from "./libraries/TimelocksLib.sol";
 
-import { IBaseEscrow } from "./interfaces/IBaseEscrow.sol";
+import {IBaseEscrow} from "./interfaces/IBaseEscrow.sol";
 
 /**
  * @title Base abstract Escrow contract for cross-chain atomic swap.
@@ -46,7 +46,8 @@ abstract contract BaseEscrow is IBaseEscrow {
     }
 
     modifier onlyValidSecret(bytes32 secret, Immutables calldata immutables) {
-        if (_keccakBytes32(secret) != immutables.hashlock) revert InvalidSecret();
+        if (_keccakBytes32(secret) != immutables.hashlock)
+            revert InvalidSecret();
         _;
     }
 
@@ -68,7 +69,11 @@ abstract contract BaseEscrow is IBaseEscrow {
     /**
      * @notice See {IBaseEscrow-rescueFunds}.
      */
-    function rescueFunds(address token, uint256 amount, Immutables calldata immutables)
+    function rescueFunds(
+        address token,
+        uint256 amount,
+        Immutables calldata immutables
+    )
         external
         onlyTaker(immutables)
         onlyValidImmutables(immutables)
@@ -93,14 +98,16 @@ abstract contract BaseEscrow is IBaseEscrow {
      * @dev Transfers native tokens to the recipient.
      */
     function _ethTransfer(address to, uint256 amount) internal {
-        (bool success,) = to.call{ value: amount }("");
+        (bool success, ) = to.call{value: amount}("");
         if (!success) revert NativeTokenSendingFailure();
     }
 
     /**
      * @dev Should verify that the computed escrow address matches the address of this contract.
      */
-    function _validateImmutables(Immutables calldata immutables) internal view virtual;
+    function _validateImmutables(
+        Immutables calldata immutables
+    ) internal view virtual;
 
     /**
      * @dev Computes the Keccak-256 hash of the secret.

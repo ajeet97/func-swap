@@ -1,0 +1,24 @@
+{
+  "withdraw": {
+    "secret": "0xsecret...",
+    "immutables": {
+  "order_hash": "order_1",
+  "hashlock": "0xabc123...",
+  "maker": "wasm1maker...",
+  "taker": "wasm1taker...",
+  "coin": {
+    "native": [
+      {
+        "denom": "stake",
+        "amount": "1000000"
+      }
+    ]
+  },
+  "safety_deposit": "1000",
+  "timelocks": {
+    "dst": "79228162514310454453741109116929500",
+    "src": "316912650093950838530184839169000"
+  }
+}
+  }
+}
