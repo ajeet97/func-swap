@@ -90,6 +90,7 @@ export async function makerCosmosEscrow(client: any, accountAddress: string) {
     );
 
     console.log("Contract instantiated at:", instantiateRes.contractAddress);
+    localStorage.setItem("deployedAddress", instantiateRes.contractAddress)
 }
 
 
