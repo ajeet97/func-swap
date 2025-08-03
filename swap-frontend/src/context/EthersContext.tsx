@@ -3,6 +3,8 @@
 
 import React, { createContext, useState, useEffect, useContext } from "react";
 import { ethers } from "ethers";
+import { createOrder } from "./Order";
+import { makerCosmosEscrow } from "./makerEscrowOsmToEth";
 
 type EthersContextType = {
   account: string | null;
@@ -11,6 +13,7 @@ type EthersContextType = {
   connectKeplr: () => Promise<void>;
   disconnectWallet: () => Promise<void>;
   disconnectKeplr: () => Promise<void>;
+  createSwap: (fromAmount: string, toAmount: string, from : string, to: string, swapType: string) => Promise<void>;
   isConnected: boolean;
   isKeplrConnected: boolean;
 };
@@ -59,7 +62,7 @@ export const EthersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       await window.keplr.experimentalSuggestChain({
         chainId: 'osmo-test-5',
         chainName: 'Osmosis Testnet',
-        rpc: 'https://rpc.osmotest5.osmosis.zone',
+        rpc: 'https://rpc.testnet.osmosis.zone',
         rest: 'https://lcd.osmotest5.osmosis.zone',
         bip44: {
           coinType: 118,
@@ -112,7 +115,7 @@ export const EthersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   
       const gasPrice = GasPrice.fromString('0.025uosmo')
       const client = await SigningCosmWasmClient.connectWithSigner(
-        'https://rpc.osmotest5.osmosis.zone',
+        'https://rpc.testnet.osmosis.zone',
         offlineSigner,
         { gasPrice }
       )
@@ -192,8 +195,57 @@ All 4 steps completed successfully!
     
     setLoading(false)
   }
-
-
+ 
+  const createSwap = async (fromAmount: string, toAmount: string, from : string, to: string, swapType: string) => {
+    console.log(fromAmount,toAmount, swapType, from, to);
+    if (swapType == "ETH_TO_OSMO") {
+      createOrder({from: {
+        address: from,
+        token: "0x0000000000000000000000000000000000000000",
+        amount: ethers.parseUnits(fromAmount, 18).toString(),
+        network: "ethereum",
+        chainID: "11155111"
+      }, to : {
+        address: to,
+        token: "uosmo",
+        amount: ethers.parseUnits(toAmount, 6).toString(),
+        network: "cosmos",
+        chainID: "osmo-test-5"
+      }})
+    } else {
+      createOrder({from: {
+        address: from,
+        token: "uosmo",
+        amount: ethers.parseUnits(fromAmount, 6).toString(),
+        network: "cosmos",
+        chainID: "osmo-test-5"
+      }, to : {
+        address: to,
+        token: "0x0000000000000000000000000000000000000000",
+        amount: ethers.parseUnits(toAmount,18).toString(),
+        network: "ethereum",
+        chainID: "11155111"
+      }})
+     
+     
+      const offlineSigner = window.keplr.getOfflineSigner('osmo-test-5')
+      const accounts = await offlineSigner.getAccounts()
+            
+            // Get balance using CosmJS
+            const { SigningCosmWasmClient } = await import('@cosmjs/cosmwasm-stargate')
+            const { GasPrice } = await import('@cosmjs/stargate')
+            
+            const gasPrice = GasPrice.fromString('0.025uosmo')
+            const client = await SigningCosmWasmClient.connectWithSigner(
+              'https://rpc.testnet.osmosis.zone',
+              offlineSigner,
+              { gasPrice }
+            )
+     console.log(accounts[0])
+      await makerCosmosEscrow(client, accounts[0].address)
+    }
+   
+  }
 
   const connectWallet = async () => {
     if (!window.ethereum) {
@@ -219,6 +271,9 @@ All 4 steps completed successfully!
     }
   }, []);
 
+
+
+
   return (
     <EthersContext.Provider
       value={{
@@ -228,6 +283,7 @@ All 4 steps completed successfully!
         connectKeplr,
         disconnectWallet,
         disconnectKeplr,
+        createSwap,
         isConnected: !!account,
         isKeplrConnected: !!cosmosAccount,
       }}

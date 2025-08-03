@@ -3,10 +3,10 @@
 import { useState, useMemo } from "react";
 import { useEthers } from "@/context/EthersContext";
 
-// Static rate: 1 ETH = 10 OSMO and 1 OSMO = 0.1 ETH
+// Static rate: 1 ETH = 21340 OSMO and 1 OSMO = 1/21340 ETH
 const EXCHANGE_RATE = {
   "Ethereum->Osmosis": 21340,
-  "Osmosis->Ethereum": 1/21340,
+  "Osmosis->Ethereum": 1 / 21340,
 };
 
 const SwapInterface = () => {
@@ -23,6 +23,7 @@ const SwapInterface = () => {
     disconnectKeplr,
     cosmosAccount,
     isKeplrConnected,
+    createSwap,
   } = useEthers();
 
   const switchNetworks = () => {
@@ -46,8 +47,27 @@ const SwapInterface = () => {
     }
   };
 
-  const isWalletConnected = from === "Ethereum" ? isConnected : isKeplrConnected;
-  const walletAddress = from === "Ethereum" ? account : cosmosAccount;
+  const handleSwap = () => {
+    const swapType = to === "Ethereum" ? "OSMO_TO_ETH" : "ETH_TO_OSMO";
+    const fromAmount = amount;
+    const toAmount = outputAmount;
+    const fromWallet = from === "Ethereum" ? account : cosmosAccount;
+    const toWallet = to === "Ethereum" ? account : cosmosAccount;
+
+    if (!fromWallet || !toWallet) {
+      alert("Please connect both wallets before swapping.");
+      return;
+    }
+
+    createSwap(fromAmount, toAmount, fromWallet, toWallet, swapType);
+  };
+
+  const isFromWalletConnected =
+    from === "Ethereum" ? isConnected : isKeplrConnected;
+  const isToWalletConnected = to === "Ethereum" ? isConnected : isKeplrConnected;
+
+  const fromWalletAddress = from === "Ethereum" ? account : cosmosAccount;
+  const toWalletAddress = to === "Ethereum" ? account : cosmosAccount;
 
   const outputAmount = useMemo(() => {
     const amt = parseFloat(amount);
@@ -95,12 +115,15 @@ const SwapInterface = () => {
 
       {amount && (
         <div className="mb-4 text-center text-gray-700 font-medium">
-          You will receive: <span className="font-semibold">{outputAmount} {to}</span>
+          You will receive:{" "}
+          <span className="font-semibold">
+            {outputAmount} {to}
+          </span>
         </div>
       )}
 
       <div className="flex flex-col md:flex-row gap-4 mt-6">
-        {!isWalletConnected ? (
+        {!isFromWalletConnected ? (
           <button
             className="w-full bg-yellow-500 hover:bg-green-600 text-white px-4 py-2 rounded"
             onClick={handleConnect}
@@ -112,17 +135,39 @@ const SwapInterface = () => {
             className="w-full bg-green-600 hover:bg-red-700 text-white px-4 py-2 rounded"
             onClick={handleDisconnect}
           >
-            Connected: {walletAddress?.slice(0, 6)}...{walletAddress?.slice(-4)} (Disconnect)
+            Connected (From): {fromWalletAddress?.slice(0, 6)}...
+            {fromWalletAddress?.slice(-4)} (Disconnect)
           </button>
         )}
 
-        <button
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-          disabled={!amount || !isWalletConnected}
-        >
-          Swap
-        </button>
+        {isToWalletConnected && (
+          <button
+            className="w-full bg-green-600 text-white px-4 py-2 rounded"
+            disabled
+          >
+            Connected (To): {toWalletAddress?.slice(0, 6)}...
+            {toWalletAddress?.slice(-4)}
+          </button>
+        )}
       </div>
+
+      {/* Connect To wallet if not connected */}
+      {!isToWalletConnected && (
+        <button
+          className="w-full bg-yellow-500 hover:bg-green-600 text-white px-4 py-2 rounded mt-4"
+          onClick={to === "Ethereum" ? connectWallet : connectKeplr}
+        >
+          Connect {to} Wallet (To)
+        </button>
+      )}
+
+      <button
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mt-6"
+        disabled={!amount || !isFromWalletConnected || !isToWalletConnected}
+        onClick={handleSwap}
+      >
+        Swap
+      </button>
     </div>
   );
 };
