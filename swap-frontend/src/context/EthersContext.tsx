@@ -1,7 +1,7 @@
 // src/contexts/EthersContext.tsx
 "use client";
 
-import "dotenv/config";
+// import "dotenv/config";
 // import './envConfig.ts'
 // import '../../envConfig';
 import React, { createContext, useState, useEffect, useContext } from "react";
@@ -9,6 +9,8 @@ import { ethers } from "ethers";
 import { createOrder } from "./Order";
 import { makerCosmosEscrow } from "./makerEscrowOsmToEth";
 import { takerCosmosFill } from "./takerFillOsmToEth";
+import { makerCosmosWithdraw } from "./makerWithdrawOsmToEth";
+import { takerCosmosWithdraw } from "./takerWithdrawOsmToEth";
 
 type EthersContextType = {
   account: string | null;
@@ -17,7 +19,7 @@ type EthersContextType = {
   connectKeplr: () => Promise<void>;
   disconnectWallet: () => Promise<void>;
   disconnectKeplr: () => Promise<void>;
-  createSwap: (fromAmount: string, toAmount: string, from : string, to: string, swapType: string) => Promise<void>;
+  createSwap: (fromAmount: string, toAmount: string, from: string, to: string, swapType: string) => Promise<void>;
   isConnected: boolean;
   isKeplrConnected: boolean;
 };
@@ -49,7 +51,7 @@ export const EthersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setAccount(null);
     // setIsConnected(false);
   };
-  
+
   const disconnectKeplr = async () => {
     setCosmosAccount(null);
     // setIsKeplrConnected(false);
@@ -60,13 +62,13 @@ export const EthersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       alert('Please install Keplr wallet!')
       return
     }
-  
+
     try {
       // Suggest the Osmosis testnet chain to Keplr
       await window.keplr.experimentalSuggestChain({
         chainId: 'osmo-test-5',
         chainName: 'Osmosis Testnet',
-        rpc: 'https://rpc.testnet.osmosis.zone',
+        rpc: 'https://rpc.osmotest5.osmosis.zone',
         rest: 'https://lcd.osmotest5.osmosis.zone',
         bip44: {
           coinType: 118,
@@ -105,46 +107,46 @@ export const EthersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         },
         features: ['stargate', 'ibc-transfer'],
       })
-  
+
       // Enable Osmosis testnet
       await window.keplr.enable('osmo-test-5')
-  
+
       // Get the offline signer for Osmosis testnet
       const offlineSigner = window.keplr.getOfflineSigner('osmo-test-5')
       const accounts = await offlineSigner.getAccounts()
-  
+
       // Setup CosmWasm client for Osmosis
       const { SigningCosmWasmClient } = await import('@cosmjs/cosmwasm-stargate')
       const { GasPrice } = await import('@cosmjs/stargate')
-  
+
       const gasPrice = GasPrice.fromString('0.025uosmo')
       const client = await SigningCosmWasmClient.connectWithSigner(
         'https://rpc.testnet.osmosis.zone',
         offlineSigner,
         { gasPrice }
       )
-  
+
       const balance = await client.getBalance(accounts[0].address, 'uosmo')
-  
+
       setCosmosAccount(accounts[0].address)
       setCosmosNetworkInfo({
         chainId: 'osmo-test-5',
         balance: (parseInt(balance.amount) / 1000000).toFixed(6),
         client: client
       })
-  
+
       setSwapResult(`✅ Keplr connected to Osmosis testnet!`)
     } catch (error) {
       console.error('Keplr connection failed:', error)
       alert('Failed to connect Keplr: ' + error.message)
     }
   }
-  
+
 
 
 
   const updateStep = (stepId: any, status: any, txHash = null) => {
-    setSteps(prev => prev.map(step => 
+    setSteps(prev => prev.map(step =>
       step.id === stepId ? { ...step, status, txHash } : step
     ))
   }
@@ -168,20 +170,20 @@ export const EthersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setLoading(true)
     setCurrentStep(1)
     setSwapResult('🚀 Starting complete cross-chain atomic swap...')
-    
+
     try {
       // STEP 1: Lock ETH on Ethereum and get swap details
       const swapData = await lockEthOnEthereum()
-      
+
       // STEP 2: Lock NTRN on Neutron using swap data
       await lockNtrnOnNeutron(swapData)
-      
+
       // STEP 3: Claim NTRN (reveals secret)
       await claimNtrnFromNeutron(swapData)
-      
+
       // STEP 4: Claim ETH (completes swap)
       await claimEthFromEthereum(swapData)
-      
+
       setSwapResult(`🎉 COMPLETE ATOMIC SWAP SUCCESS!
         
 All 4 steps completed successfully!
@@ -191,71 +193,87 @@ All 4 steps completed successfully!
 ✅ ETH claimed (swap complete)
 
 🌉 Perfect cross-chain atomic swap demonstration!`)
-      
+
     } catch (error) {
       console.error('Complete swap failed:', error)
       setSwapResult(`❌ Swap failed at step ${currentStep}: ${error.message}`)
     }
-    
+
     setLoading(false)
   }
- 
-  const createSwap = async (fromAmount: string, toAmount: string, from : string, to: string, swapType: string) => {
-    console.log(fromAmount,toAmount, swapType, from, to);
+
+  const createSwap = async (fromAmount: string, toAmount: string, from: string, to: string, swapType: string) => {
+    console.log(fromAmount, toAmount, swapType, from, to);
     if (swapType == "ETH_TO_OSMO") {
-      createOrder({from: {
-        address: from,
-        token: "0x0000000000000000000000000000000000000000",
-        amount: ethers.parseUnits(fromAmount, 18).toString(),
-        network: "ethereum",
-        chainID: "11155111"
-      }, to : {
-        address: to,
-        token: "uosmo",
-        amount: ethers.parseUnits(toAmount, 6).toString(),
-        network: "cosmos",
-        chainID: "osmo-test-5"
-      }})
+      createOrder({
+        from: {
+          address: from,
+          token: "0x0000000000000000000000000000000000000000",
+          amount: ethers.parseUnits(fromAmount, 18).toString(),
+          network: "ethereum",
+          chainID: "11155111"
+        }, to: {
+          address: to,
+          token: "uosmo",
+          amount: ethers.parseUnits(toAmount, 6).toString(),
+          network: "cosmos",
+          chainID: "osmo-test-5"
+        }
+      })
     } else {
-      createOrder({from: {
-        address: from,
-        token: "uosmo",
-        amount: ethers.parseUnits(fromAmount, 6).toString(),
-        network: "cosmos",
-        chainID: "osmo-test-5"
-      }, to : {
-        address: to,
-        token: "0x0000000000000000000000000000000000000000",
-        amount: ethers.parseUnits(toAmount,18).toString(),
-        network: "ethereum",
-        chainID: "11155111"
-      }})
-     
-     
+      createOrder({
+        from: {
+          address: from,
+          token: "uosmo",
+          amount: ethers.parseUnits(fromAmount, 6).toString(),
+          network: "cosmos",
+          chainID: "osmo-test-5"
+        }, to: {
+          address: to,
+          token: "0x0000000000000000000000000000000000000000",
+          amount: ethers.parseUnits(toAmount, 18).toString(),
+          network: "ethereum",
+          chainID: "11155111"
+        }
+      })
+
+
       const offlineSigner = window.keplr.getOfflineSigner('osmo-test-5')
       const accounts = await offlineSigner.getAccounts()
-            
-            // Get balance using CosmJS
-            const { SigningCosmWasmClient } = await import('@cosmjs/cosmwasm-stargate')
-            const { GasPrice } = await import('@cosmjs/stargate')
-            
-            const gasPrice = GasPrice.fromString('0.025uosmo')
-            const client = await SigningCosmWasmClient.connectWithSigner(
-              'https://rpc.testnet.osmosis.zone',
-              offlineSigner,
-              { gasPrice }
-            )
-     console.log(accounts[0])
+
+      // Get balance using CosmJS
+      const { SigningCosmWasmClient } = await import('@cosmjs/cosmwasm-stargate')
+      const { GasPrice } = await import('@cosmjs/stargate')
+
+      const gasPrice = GasPrice.fromString('0.025uosmo')
+      const client = await SigningCosmWasmClient.connectWithSigner(
+        'https://rpc.testnet.osmosis.zone',
+        offlineSigner,
+        { gasPrice }
+      )
+      console.log(accounts[0])
       await makerCosmosEscrow(client, accounts[0].address)
       console.log("maker done ")
-      await new Promise(resolve => setTimeout(resolve, 10000));
-      console.log("taker starting ")
 
+      await new Promise(resolve => setTimeout(resolve, 5000));
+
+      console.log("taker starting ")
       await takerCosmosFill()
       console.log("taker done ")
 
+      await new Promise(resolve => setTimeout(resolve, 5000));
+
+      console.log("maker claiming...")
+      await makerCosmosWithdraw();
+      console.log('maker claimed')
+
+      await new Promise(resolve => setTimeout(resolve, 5000));
+
+      console.log('taker claiming...')
+      await takerCosmosWithdraw();
+      console.log('taker claimed')
     }
-   
+
   }
 
   const connectWallet = async () => {

@@ -1,16 +1,6 @@
-import "dotenv/config";
 import crypto from 'crypto';
-import {
-    SigningCosmWasmClient,
-} from "@cosmjs/cosmwasm-stargate";
-import {
-    DirectSecp256k1HdWallet,
-} from "@cosmjs/proto-signing";
-import { GasPrice } from "@cosmjs/stargate";
-
-// import { order } from './orders/order-2'
 import { ethers } from "ethers";
-import { loadOrder } from "./Order";
+import { loadOrder, updateOrder } from "./Order";
 import { createTimelock } from "./timelocks";
 
 export async function makerCosmosEscrow(client: any, accountAddress: string) {
@@ -20,28 +10,16 @@ export async function makerCosmosEscrow(client: any, accountAddress: string) {
     const order = loadOrder()
     if (order.swap.from.network != 'cosmos') throw new Error('Invalid network for maker escrow')
 
-    // const wallet = await DirectSecp256k1HdWallet.fromMnemonic(MNEMONIC, {
-    //     prefix: "osmo",
-    // });
-    // const [account] = await wallet.getAccounts();
-    // console.log('account:', account.address);
-
     if (accountAddress != order.swap.from.address) {
         throw new Error('wallet does not match with maker address');
     }
-
-    // const client = await SigningCosmWasmClient.connectWithSigner(
-    //     "https://rpc.testnet.osmosis.zone",
-    //     wallet,
-    //     { gasPrice: GasPrice.fromString('1000uosmo') }
-    // );
 
     const initMsg = {
         // rescue delay is not being used as of now
         rescue_delay: 1200, // 20 minutes
 
         immutables: {
-            order_hash: "order-1",
+            order_hash: crypto.createHash('sha256').update(`order:${order.orderID}`).digest('hex'),
             hashlock: order.hashlock,
             maker: order.swap.from.address,
             taker: RESOLVER_COSMOS_ADDR,
@@ -90,7 +68,10 @@ export async function makerCosmosEscrow(client: any, accountAddress: string) {
     );
 
     console.log("Contract instantiated at:", instantiateRes.contractAddress);
-    localStorage.setItem("deployedAddress", instantiateRes.contractAddress)
+
+    updateOrder(order => {
+        order.srcEscrow = instantiateRes.contractAddress;
+    });
 }
 
 

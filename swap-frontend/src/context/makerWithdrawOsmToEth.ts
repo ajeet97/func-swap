@@ -1,8 +1,8 @@
-import "dotenv/config"
 import crypto from 'crypto';
 import { ethers } from "ethers";
 import { loadOrder } from "./Order";
 
+import EscrowDstABI from "../abis/EscrowDst.json";
 import EscrowFactoryABI from "../abis/EscrowFactory.json";
 import { createEvmTimelock } from './timelocks';
 
@@ -10,10 +10,9 @@ const taker = process.env.NEXT_PUBLIC_RESOLVER_EVM_ADDR!;
 const pk = process.env.NEXT_PUBLIC_RESOLVER_EVM_PK!;
 const factoryAddr = '0x9CA8EEFbe7CB1827be7781eD713b74955f1be0be'
 
-export async function takerCosmosFill() {
-    console.log("taker evm rpc: ", process.env.NEXT_PUBLIC_EVM_RPC)
+export async function makerCosmosWithdraw() {
     const order = loadOrder();
-    if (order.swap.to.network != 'ethereum') throw new Error('Invalid network for taker escrow')
+    if (order.swap.to.network != 'ethereum') throw new Error('Invalid network for maker withdraw')
 
     const provider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_EVM_RPC);
     const signer = new ethers.Wallet(pk, provider);
@@ -39,11 +38,11 @@ export async function takerCosmosFill() {
     console.log('Immutables:')
     console.dir(immutables, { depth: null });
 
-    const funds = (BigInt(order.swap.to.amount) + BigInt(immutables.safetyDeposit)).toString()
+    const escrowAddr = await factory.addressOfEscrowDst(immutables);
+    console.log('\ndst escrow:', escrowAddr);
 
-    const escrow = await factory.addressOfEscrowDst(immutables);
-    console.log('\ndst escrow:', escrow);
+    const escrow = new ethers.Contract(escrowAddr, EscrowDstABI, signer);
 
-    await factory.createDstEscrow(immutables, { value: funds });
-    console.log("dst escrow created");
+    await escrow.withdraw('0x' + order.secret, immutables);
+    console.log("funds claimed on ethereum");
 }

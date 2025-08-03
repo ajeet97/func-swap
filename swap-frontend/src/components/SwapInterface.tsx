@@ -79,12 +79,12 @@ const SwapInterface = () => {
 
   return (
     <div className="bg-white p-6 rounded-2xl shadow-lg max-w-xl mx-auto mt-10 border border-gray-200">
-      <h2 className="text-2xl font-semibold mb-4 text-center">Swap Assets</h2>
+      <h2 className="text-2xl font-semibold mb-4 text-center text-black">Swap Assets</h2>
 
       <div className="flex justify-between mb-4">
         <div className="w-full">
           <label className="block mb-1 text-gray-600">From</label>
-          <div className="bg-gray-100 px-4 py-2 rounded text-center">{from}</div>
+          <div className="bg-gray-100 px-4 py-2 rounded text-center text-black">{from}</div>
         </div>
 
         <div className="flex items-end mx-4">
@@ -98,7 +98,7 @@ const SwapInterface = () => {
 
         <div className="w-full">
           <label className="block mb-1 text-gray-600">To</label>
-          <div className="bg-gray-100 px-4 py-2 rounded text-center">{to}</div>
+          <div className="bg-gray-100 px-4 py-2 rounded text-center text-black">{to}</div>
         </div>
       </div>
 
@@ -109,7 +109,7 @@ const SwapInterface = () => {
           placeholder="Enter amount"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="text-black w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
       </div>
 
